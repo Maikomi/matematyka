@@ -40,55 +40,72 @@ class SqrMatrix{
         }
     }
 
-    determinant() {
-        const n = this.getSize()
-        if(n===1){
-            return this.getValue(0,0)
-        }
+    cofactor(row, col) {
+        const n = this.getSize();
+        const minorMatrix = new SqrMatrix(n - 1);
 
-        if(n===2){
-            return (this.getValue(0,0)*this.getValue(1,1)-this.getValue(0,1)*this.getValue(1,0))
-        }
-        if(n===3){
-            let a = this.getValue(0,0)*this.getValue(1,1)*this.getValue(2,2);
-            let b = this.getValue(0,1)*this.getValue(1,2)*this.getValue(2,0);
-            let c = this.getValue(0,2)*this.getValue(1,0)*this.getValue(2,1);
-            let d = this.getValue(0,2)*this.getValue(1,1)*this.getValue(2,0);
-            let e = this.getValue(0,0)*this.getValue(1,2)*this.getValue(2,1);
-            let f = this.getValue(0,1)*this.getValue(1,0)*this.getValue(2,2);
-
-            return a+b+c-d-e-f;
-        }
-        if(n>=4){
-            let minOne;
-            let det = 0;
-            for (let j = 0; j < n; j++) {
-                if(this.getValue(0, j)!=0){
-                    let matrix = new SqrMatrix(n-1);
-                    for(let k = 0; k < n-1; k++){
-                        for(let l = 0; l < n-1; l++){
-                            for(let i = 1; i < n; i++){
-                                if(i != j){
-                                    matrix.setValue(k, l, this.getValue(i, j));
-                                    matrix.print();
-                                    let x = (k + l) % 2;
-                                    if(x==1){
-                                        minOne = 1;
-                                    }else{
-                                        minOne = -1;
-                                    }
-                                    //console.log("det: ", det)
-                                    det = det + minOne*this.getValue(0,j)*matrix.determinant();
-                                    return det;
-                                }
-                            }
-                        }
-                    }
-                }
+        for (let i = 0, minorRow = 0; i < n; i++) {
+            if (i === row) continue;
+            for (let j = 0, minorCol = 0; j < n; j++) {
+                if (j === col) continue;
+                minorMatrix.setValue(minorRow, minorCol, this.getValue(i, j));
+                minorCol++;
             }
+            minorRow++;
         }
+
+        // Obliczamy wyznacznik minorMatrix
+        return minorMatrix.determinant();
     }
 
+    // Metoda zwracająca macierz dopełnień
+    getAdjointMatrix() {
+        const n = this.getSize();
+        const adjointMatrix = new SqrMatrix(n);
+    
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+                const cofactorValue = this.cofactor(i, j);
+                const sign = ((i + j) % 2 === 0) ? 1 : -1; // Poprawiony znak
+                adjointMatrix.setValue(i, j, sign * cofactorValue);
+            }
+        }
+        return adjointMatrix;
+    }
+    
+
+    determinant() {
+        const n = this.getSize();
+    
+        if (n === 1) {
+            return this.getValue(0, 0);
+        }
+
+        if (n === 2) {
+            return this.getValue(0, 0) * this.getValue(1, 1) - this.getValue(0, 1) * this.getValue(1, 0);
+        }
+    
+        let det = 0;
+        for (let j = 0; j < n; j++) {
+            if (this.getValue(0, j) !== 0) {
+                let matrix = new SqrMatrix(n - 1);
+                let sign = (j % 2 === 0) ? 1 : -1;
+    
+                for (let i = 1; i < n; i++) {
+                    let col = 0;
+                    for (let k = 0; k < n; k++) {
+                        if (k === j) continue;
+                        matrix.setValue(i - 1, col, this.getValue(i, k));
+                        col++;
+                    }
+                }
+    
+                det += sign * this.getValue(0, j) * matrix.determinant();
+            }
+        }
+    
+        return det;
+    }
 
 }
 
@@ -182,19 +199,30 @@ const transposeMatrix = (m1) => {
     return result;
 }
 
-// const inverseMatrix = (m1) => {
-//     let n = m1.getSize();
-//     if (n < 2) {
-//         throw new Error("Matrix is too small to have an inverse");
-//     }
+//Prawie dobrze, ale nadal źle. Minusy są nie tak
+const inverseMatrix = (m1) => {
+    let n = m1.getSize();
+    if (n < 2) {
+        throw new Error("Matrix is too small to have an inverse");
+    }
 
-//    let detM
-//    for (let i = 0; i < n; i++){
-//     for( let j = 0; j < n; j++){
+    const m2 = m1.getAdjointMatrix();
+    const det = m1.determinant();
 
-//     }
-//    }
-// }
+    if (det === 0) {
+        throw new Error("Matrix is singular, it does not have an inverse");
+    }
+
+    const result = new SqrMatrix(n);
+
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            result.setValue(i, j, m2.getValue(i, j) / det); // Poprawione przypisanie
+        }
+    }
+
+    return result;
+}
 
 //testowanie
 
@@ -268,15 +296,28 @@ const m4 = new SqrMatrix(3);
 
 m4.setValue(0, 0, 1);
 m4.setValue(0, 1, 2);
-m4.setValue(0, 2, 3);
-m4.setValue(1, 0, 3);
-m4.setValue(1, 1, 7);
-m4.setValue(1, 2, 2);
-m4.setValue(2, 0, 3);
-m4.setValue(2, 1, -2);
+m4.setValue(0, 2, 2);
+m4.setValue(1, 0, 2);
+m4.setValue(1, 1, 0);
+m4.setValue(1, 2, 1);
+m4.setValue(2, 0, 1);
+m4.setValue(2, 1, 2);
 m4.setValue(2, 2, 1);
 
 console.log("wyznacznik")
 console.log(m4.determinant())
 console.log("wyznacznik duży")
 console.log(m2.determinant())
+
+console.log("dopełnienie macierzy")
+m3 = m4.getAdjointMatrix();
+m3.print();
+
+console.log("macierz odwrotna duża");
+m3 = inverseMatrix(m2);
+m3.print();
+
+console.log("macierz odwrotna mała");
+m3 = inverseMatrix(m4);
+m3.print();
+
