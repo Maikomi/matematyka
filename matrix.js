@@ -206,23 +206,23 @@ const inverseMatrix = (m1) => {
         throw new Error("Matrix is too small to have an inverse");
     }
 
-    const m2 = m1.getAdjointMatrix();
-    const det = m1.determinant();
-
+    let m2 = m1.getAdjointMatrix(); // Oblicz macierz dopełnień
+    let det = m1.determinant();
+    
     if (det === 0) {
-        throw new Error("Matrix is singular, it does not have an inverse");
+        throw new Error("Matrix is singular, no inverse exists");
     }
-
-    const result = new SqrMatrix(n);
-
+    
+    let result = new SqrMatrix(n);
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
-            result.setValue(i, j, m2.getValue(i, j) / det); // Poprawione przypisanie
+            result.setValue(i, j, m2.getValue(i, j) / det); // Podziel każdy element macierzy dopełnień przez wyznacznik
         }
     }
 
-    return result;
+    return transposeMatrix(result);
 }
+
 
 //testowanie
 
