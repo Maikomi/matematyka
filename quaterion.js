@@ -145,4 +145,31 @@ console.log(q1.multiply(q2).toString());
 const rotatedVector = Quaternion.rotate(Math.PI, [1, 0, 0]);
 console.log(rotatedVector.toString());
 
-console.log("hejo");
+
+// Define the point to be rotated
+const pointToRotate = new Vector([-1, -1, -1]);
+
+// Define the rotation angle in radians (270 degrees in radians)
+const rotationAngle = (270 * Math.PI) / 180;
+
+// Define the axis of rotation (x-axis in this case)
+const rotationAxis = [1, 0, 0];
+
+// Create a quaternion representing the rotation
+const rotationQuaternion = Quaternion.rotate(rotationAngle, rotationAxis);
+
+// Create a quaternion from the point to be rotated
+const pointQuaternion = new Quaternion([0, pointToRotate.vector[0], pointToRotate.vector[1], pointToRotate.vector[2]]);
+
+// Rotate the point using quaternion multiplication
+const rotatedQuaternion = rotationQuaternion.multiply(pointQuaternion);
+
+// Extract the vector part of the resulting quaternion
+const rotatedVector2 = new Vector([
+    parseFloat(rotatedQuaternion.get(1).toFixed(6)),
+    parseFloat(rotatedQuaternion.get(2).toFixed(6)),
+    parseFloat(rotatedQuaternion.get(3).toFixed(6)),
+]);
+
+// Log the rotated vector
+console.log(rotatedVector2.vector);
