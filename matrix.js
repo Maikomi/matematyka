@@ -27,7 +27,6 @@ class SqrMatrix{
     }
 
     //pobranie rozmiaru macierzy
-
     getSize(){
         return this.data.length;
     }
@@ -223,7 +222,6 @@ const inverseMatrix = (m1) => {
 }
 
 //translacja macierzy
-
 const translateMatrix = (m1, dx, dy, dz) => {
     const n = m1.getSize();
 
@@ -256,7 +254,6 @@ const translateMatrix = (m1, dx, dy, dz) => {
 }
 
 //Skalowanie macierzy
-
 const scaleMatrix = (m1, scaleX, scaleY, scaleZ) => {
     const n = m1.getSize();
 
@@ -344,7 +341,6 @@ const rotateMatrix = (m1, angleX, angleY, angleZ) => {
 }
 
 //macierz jednostkowa
-
 const createIdentityMatrix = (size) => {
     const identityMatrix = new SqrMatrix(size);
 
@@ -354,6 +350,31 @@ const createIdentityMatrix = (size) => {
         return identityMatrix;
 
 }
+
+class Vector {
+    constructor(x, y, z, w = 1) {
+        this.coordinates = [x, y, z, w];
+    }
+
+    // Obrót wektora o kąt wokół osi Y
+    rotateY(angle) {
+        const cosY = Math.cos(angle);
+        const sinY = Math.sin(angle);
+
+        const x = this.coordinates[0] * cosY + this.coordinates[2] * sinY;
+        const y = this.coordinates[1];
+        const z = -this.coordinates[0] * sinY + this.coordinates[2] * cosY;
+
+        return new Vector(x, y, z);
+    }
+
+    // Wyświetlanie współrzędnych wektora z określoną precyzją
+    print(precision = 1) {
+    const roundedCoordinates = this.coordinates.map(coord => coord.toFixed(precision));
+    console.log(roundedCoordinates);
+    }
+}
+
 
 //testowanie
 
@@ -556,31 +577,7 @@ test2.print();
 
 console.log("Wektor [1, 0, 0, 1] i obrót o 90 stopni wokół osi Y");
 
-class Vector {
-    constructor(x, y, z, w = 1) {
-        this.coordinates = [x, y, z, w];
-    }
-
-    // Obrót wektora o kąt wokół osi Y
-    rotateY(angle) {
-        const cosY = Math.cos(angle);
-        const sinY = Math.sin(angle);
-
-        const x = this.coordinates[0] * cosY + this.coordinates[2] * sinY;
-        const y = this.coordinates[1];
-        const z = -this.coordinates[0] * sinY + this.coordinates[2] * cosY;
-
-        return new Vector(x, y, z);
-    }
-
-    // Wyświetlanie współrzędnych wektora
-    print(precision = 1) {
-        const roundedCoordinates = this.coordinates.map(coord => coord.toFixed(precision));
-        console.log(roundedCoordinates);
-    }
-}
-
-//Utworzenie wektora [1, 0, 0]
+// Utworzenie wektora [1, 0, 0]
 const vectorToRotate = new Vector(1, 0, 0);
 
 console.log("Wektor przed obrotem:");
@@ -591,6 +588,5 @@ const rotatedVector = vectorToRotate.rotateY(Math.PI / 2);
 
 console.log("Wektor po obrocie o 90 stopni wokół osi Y:");
 rotatedVector.print();
-
 
 
