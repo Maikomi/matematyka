@@ -13,6 +13,30 @@ class Vector {
     dotProduct(other) {
         return this.vector.reduce((acc, val, idx) => acc + val * other.vector[idx], 0);
     }
+
+    multiply(scalar) {
+        return new Vector(this.vector.map(val => val * scalar));
+    }
+
+    add(other) {
+        return new Vector(this.vector.map((val, idx) => val + other.vector[idx]));
+    }
+
+    subtract(other) {
+        return new Vector(this.vector.map((val, idx) => val - other.vector[idx]));
+    }
+
+    divide(scalar) {
+        if (scalar === 0) {
+            throw new Error('Division by zero is not allowed.');
+        }
+        return new Vector(this.vector.map(val => val / scalar));
+    }
+
+    normalize() {
+        const magnitude = Math.sqrt(this.vector.reduce((sum, val) => sum + val ** 2, 0));
+        return new Vector(this.vector.map(val => val / magnitude));
+    }
 }
 
 class Quaternion {
@@ -32,14 +56,19 @@ class Quaternion {
         const a = this.get(0) * other.get(0) -
             [1, 2, 3].reduce((sum, i) => sum + this.get(i) * other.get(i), 0);
 
+        const v1 = new Vector([this.get(1), this.get(2), this.get(3)]);
+        const v2 = new Vector([other.get(1), other.get(2), other.get(3)]);
+
+        const v3 = v1.crossProduct(v2).vector;
+
         const b = this.get(0) * other.get(1) + this.get(1) * other.get(0) +
-            this.get(2) * other.get(3) - this.get(3) * other.get(2);
+            this.get(2) * other.get(3) - this.get(3) * other.get(2) + v3[0];
 
         const c = this.get(0) * other.get(2) + this.get(2) * other.get(0) +
-            this.get(3) * other.get(1) - this.get(1) * other.get(3);
+            this.get(3) * other.get(1) - this.get(1) * other.get(3) + v3[1];
 
         const d = this.get(0) * other.get(3) + this.get(3) * other.get(0) +
-            this.get(1) * other.get(2) - this.get(2) * other.get(1);
+            this.get(1) * other.get(2) - this.get(2) * other.get(1) + v3[2];
 
         return new Quaternion([a, b, c, d]);
     }
@@ -79,23 +108,27 @@ class Quaternion {
 
         const v3 = v1.crossProduct(v2).vector;
 
-        const v4 = v1.multiply(-a2).add(v2.multiply(a1)).subtract(new Vector(v3).multiply(1 / (a2 ** 2 + scalarV1V2))).vector;
+        const v4 = v1.multiply(-a2).add(v2.multiply(a1)).subtract(new Vector(v3).divide(a2 ** 2 + scalarV1V2)).vector;
 
-        return new Quaternion([(a1 * a2 + scalarV1V2) / (a2 ** 2 + scalarV1V2),
-            v4[0], v4[1], v4[2]
-        ]);
+        return new Quaternion([(a1 * a2 + scalarV1V2) / (a2 ** 2 + scalarV1V2), v4[0], v4[1], v4[2]]);
     }
 
-    static rotate(alfa, a, b, c) {
-        const ijk = new Vector([a, b, c]).multiply(Math.sin(alfa / 2) / Math.sqrt(a ** 2 + b ** 2 + c ** 2)).vector;
-        const q = new Quaternion([Math.cos(alfa / 2), ijk[0], ijk[1], ijk[2]]);
-        const qInverse = new Quaternion([Math.cos(alfa / 2), -ijk[0], -ijk[1], -ijk[2]]);
+    static rotate(angle, axis) {
+        const halfAngle = angle / 2;
+        const sinHalfAngle = Math.sin(halfAngle);
+        const cosHalfAngle = Math.cos(halfAngle);
+
+        const normalizedAxis = new Vector(axis).normalize().vector;
+
+        const ijk = new Vector(normalizedAxis).multiply(sinHalfAngle).vector;
+        const q = new Quaternion([cosHalfAngle, ijk[0], ijk[1], ijk[2]]);
+        const qInverse = new Quaternion([cosHalfAngle, -ijk[0], -ijk[1], -ijk[2]]);
 
         const inputQuaternion = new Quaternion([0, 1, 1, 1]);
 
         const outputQuaternion = q.multiply(inputQuaternion).multiply(qInverse);
 
-        return new Vector([outputQuaternion.get(1).toFixed(6), outputQuaternion.get(2).toFixed(6), outputQuaternion.get(3).toFixed(6)]);
+        return outputQuaternion;
     }
 
     equals(other) {
@@ -109,6 +142,7 @@ const q2 = new Quaternion([0, 0, 0, 1]);
 console.log(q1.toString());
 console.log(q1.multiply(q2).toString());
 
-console.log(Quaternion.rotate(Math.PI, 1, 0, 0));
+const rotatedVector = Quaternion.rotate(Math.PI, [1, 0, 0]);
+console.log(rotatedVector.toString());
 
-console.log("hejo")
+console.log("hejo");
