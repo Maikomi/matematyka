@@ -139,13 +139,14 @@ class Quaternion {
 const q1 = new Quaternion([0, 1, 0, 0]);
 const q2 = new Quaternion([0, 0, 0, 1]);
 
+console.log("Quaterions:");
 console.log(q1.toString());
-console.log(q1.multiply(q2).toString());
-
-const rotatedVector = Quaternion.rotate(Math.PI, [1, 0, 0]);
-console.log(rotatedVector.toString());
+console.log(q2.toString());
 
 
+console.log("Zadanie");
+
+console.log("Obrót punktu [-1,-1,-1] o 270 stopni");
 // Define the point to be rotated
 const pointToRotate = new Vector([-1, -1, -1]);
 
@@ -173,3 +174,13 @@ const rotatedVector2 = new Vector([
 
 // Log the rotated vector
 console.log(rotatedVector2.vector);
+
+console.log("Brak przemienności mnożenia kwaternionów");
+console.log("q1 mnożone przez q2:");
+const q1q2 = q1.multiply(q2);
+console.log(q1q2.toString());
+console.log("q2 mnożone przez q1:");
+const q2q1 = q2.multiply(q1);
+console.log(q2q1.toString());
+
+
