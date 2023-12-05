@@ -588,5 +588,3 @@ const rotatedVector = vectorToRotate.rotateY(Math.PI / 2);
 
 console.log("Wektor po obrocie o 90 stopni wokół osi Y:");
 rotatedVector.print();
-
-
