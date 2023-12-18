@@ -53,25 +53,16 @@ class Quaternion {
     }
 
     multiply(other) {
-        const a = this.get(0) * other.get(0) -
-            [1, 2, 3].reduce((sum, i) => sum + this.get(i) * other.get(i), 0);
-
         const v1 = new Vector([this.get(1), this.get(2), this.get(3)]);
         const v2 = new Vector([other.get(1), other.get(2), other.get(3)]);
 
-        const v3 = v1.crossProduct(v2).vector;
+        const a = this.get(0) * other.get(0) - v1.dotProduct(v2);
 
-        const b = this.get(0) * other.get(1) + this.get(1) * other.get(0) +
-            this.get(2) * other.get(3) - this.get(3) * other.get(2) + v3[0];
+        const v3 = v2.multiply(this.get(0)).add(v1.multiply(other.get(0))).add(v1.crossProduct(v2)).vector;
 
-        const c = this.get(0) * other.get(2) + this.get(2) * other.get(0) +
-            this.get(3) * other.get(1) - this.get(1) * other.get(3) + v3[1];
-
-        const d = this.get(0) * other.get(3) + this.get(3) * other.get(0) +
-            this.get(1) * other.get(2) - this.get(2) * other.get(1) + v3[2];
-
-        return new Quaternion([a, b, c, d]);
+        return new Quaternion([a, v3[0], v3[1], v3[2]]);
     }
+
 
     add(other) {
         return new Quaternion([0, 1, 2, 3].map(i => this.get(i) + other.get(i)));
@@ -113,7 +104,7 @@ class Quaternion {
         return new Quaternion([(a1 * a2 + scalarV1V2) / (a2 ** 2 + scalarV1V2), v4[0], v4[1], v4[2]]);
     }
 
-    static rotate(angle, axis) {
+    static rotate(angle, axis, point) {
         const halfAngle = angle / 2;
         const sinHalfAngle = Math.sin(halfAngle);
         const cosHalfAngle = Math.cos(halfAngle);
@@ -124,12 +115,17 @@ class Quaternion {
         const q = new Quaternion([cosHalfAngle, ijk[0], ijk[1], ijk[2]]);
         const qInverse = new Quaternion([cosHalfAngle, -ijk[0], -ijk[1], -ijk[2]]);
 
-        const inputQuaternion = new Quaternion([0, 1, 1, 1]);
+        const rotatedQuaternion = q.multiply(new Quaternion([0, point.vector[0], point.vector[1], point.vector[2]])).multiply(qInverse);
 
-        const outputQuaternion = q.multiply(inputQuaternion).multiply(qInverse);
+        const rotatedVector = new Vector([
+            rotatedQuaternion.get(1),
+            rotatedQuaternion.get(2),
+            rotatedQuaternion.get(3)
+        ]);
 
-        return outputQuaternion;
+        return rotatedVector;
     }
+
 
     equals(other) {
         return [0, 1, 2, 3].every(i => this.get(i) === other.get(i));
@@ -152,17 +148,10 @@ const pointToRotate = new Vector([-1, -1, -1]);
 const rotationAngle = (270 * Math.PI) / 180;
 const rotationAxis = [1, 0, 0];
 
-const rotationQuaternion = Quaternion.rotate(rotationAngle, rotationAxis);
-const pointQuaternion = new Quaternion([0, pointToRotate.vector[0], pointToRotate.vector[1], pointToRotate.vector[2]]);
-const rotatedQuaternion = rotationQuaternion.multiply(pointQuaternion);
+const rotatedVector = Quaternion.rotate(rotationAngle, rotationAxis, pointToRotate);
 
-const rotatedVector2 = new Vector([
-    parseFloat(rotatedQuaternion.get(1).toFixed(6)),
-    parseFloat(rotatedQuaternion.get(2).toFixed(6)),
-    parseFloat(rotatedQuaternion.get(3).toFixed(6)),
-]);
+console.log("Obrócony punkt:", rotatedVector.vector);
 
-console.log(rotatedVector2.vector);
 
 console.log("Brak przemienności mnożenia kwaternionów");
 console.log("q1 mnożone przez q2:");
@@ -171,5 +160,3 @@ console.log(q1q2.toString());
 console.log("q2 mnożone przez q1:");
 const q2q1 = q2.multiply(q1);
 console.log(q2q1.toString());
-
-
